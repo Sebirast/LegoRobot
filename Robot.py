@@ -28,23 +28,21 @@ class ColorSensor:
         self.blue = ColorSensor.Color(blueValue, band)
         self.colors = [white, black, blue]
     
-    def _convertToColor(value):
+    def _convertToColor(self, value):
         for color in self.colors:
             for brightness in range(color.lowerEnd, color.upperEnd):
                 if value == brightness:
                     return color
-            
-        pass
 
     def getColor():
-        pass
+        self.convertToColor(self.lightSensor.getValue())
 
 class Robot:
     def __init__(self):
         robot = LegoRobot()
         gear = Gear()
 
-        colorSensor = ColorSensor(SensorPort.S1)
+        colorSensor = ColorSensor(SensorPort.S1, 100, 100, 100, 25)
         touchSensor = TouchSensor(SensorPort.S2)
         ultrasonicSensor = UltrasonicSensor(SensorPort.S3)
 
@@ -70,7 +68,7 @@ class Robot:
 ultraSonicSensorRange = 80
 
 def main():
-    pass
+    r = Robot()
 
 if __name__ == "__main__":
     main()
