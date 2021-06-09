@@ -1,9 +1,15 @@
 from simrobot import*
+import enum
 
 # classes
 class ColorSensor:
+    class Color(enum.Enum):
+        White = 1
+        Black = 1
+        Blue = 1
+        NotFound = 1
 
-    class Color:
+    class ComparativeColors:
         meassuredBrightnessValue = None
         upperEnd = None
         lowerEnd = None
@@ -23,9 +29,10 @@ class ColorSensor:
         self.blackValue = blackValue
         self.blueValue = blueValue
 
-        self.white = ColorSensor.Color(whiteValue, band)
-        self.black = ColorSensor.Color(blackValue, band)
-        self.blue = ColorSensor.Color(blueValue, band)
+        self.white = ColorSensor.ComparativeColor(whiteValue, band)
+        self.black = ColorSensor.ComparativeColor(blackValue, band)
+        self.blue = ColorSensor.ComparativeColor(blueValue, band)
+
         self.colors = [white, black, blue]
     
     def _convertToColor(self, value):
@@ -62,13 +69,16 @@ class Robot:
 
     def hitObject(self):
         pass
-
+    
+    def run():
+        pass
 
 # variables
 ultraSonicSensorRange = 80
 
 def main():
     r = Robot()
+    r.run()
 
 if __name__ == "__main__":
     main()
