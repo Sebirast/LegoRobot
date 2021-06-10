@@ -29,6 +29,7 @@ class ColorSensor:
 
     def __init__(self, SensorPort, whiteValue, blackValue, blueValue, band): # the variable @band is used to calculate bandwith of the color
         self.lightSensor = LightSensor(SensorPort)
+        self.lightSensor.activate(True)
         self.whiteValue = whiteValue
         self.blackValue = blackValue
         self.blueValue = blueValue
@@ -39,18 +40,31 @@ class ColorSensor:
 
         self.colors = [self.white, self.black, self.blue]
     
-    def _convertToColor(self, value):
+    def __convertToColor(self, value):
         for color in self.colors:
             if value > color.lowerEnd and value < color.upperEnd:
-                return color.returnColorj
+                return color.returnColor
+
             return ColorSensor.Color.NotFound
 
-    def getColor():
-        self.convertToColor(self.lightSensor.getValue())
+    def getColor(self):
+        self.__convertToColor(self.lightSensor.getValue())
 
 class Robot:
-    iSeeNothing = 80
+    # variables
+    iSeeNothing = 80 # max ultrasonicSensor range
+    objectFound = False
+    delay = 10 # delay used for tools.delay(@delay)
+
+    # declaring of objects
+    robot = None
+    gear = None
+
+    colorSensor = None
+    touchSensor = None
+    ultrasonicSensor = None
     
+    # constructor
     def __init__(self):
         self.robot = LegoRobot()
         self.gear = Gear()
@@ -59,31 +73,50 @@ class Robot:
         self.touchSensor = TouchSensor(SensorPort.S2)
         self.ultrasonicSensor = UltrasonicSensor(SensorPort.S3)
 
-        robot.addPart(gear)
-        robot.addPart(colorSensor.lightSensor)
-        robot.addPart(touchSensor)
-        robot.addPart(ultrasonicSensor)
+        self.robot.addPart(self.gear)
+        self.robot.addPart(self.colorSensor.lightSensor)
+        self.robot.addPart(self.touchSensor)
+        self.robot.addPart(self.ultrasonicSensor)
 
-    def findObject(self):
-        gear.left()
+    def start(self):
+        self.gear.left()
         objectFound = False
         while objectFound == False:
             distance = self.ultrasonicSensor.getDistance()
             if distance < self.iSeeNothing:
-                gear.stop()
-                while 
+                objectFound = True
+                self.gear.stop()
+                self.goToObject()
+
+            Tools.delay(10)
 
     def goToObject(self):
-        pass
+        distance = self.ultrasonicSensor.getDistance()
+        while distance > 10:
+            self.gear.forward()
+            Tools.delay(self.delay) 
+
+        self.gear.stop()
+        self.getColor()
 
     def getColor(self):
-        pass
+        currentObjectColor = self.colorSensor.getColor()
+        if currentObjectColor == ColorSensor.Color.Black:
+            self.hitObject()
+        elif currentObjectColor == ColorSensor.Color.White or currentObjectColor == ColorSensor.Color.Blue:
+            self.dodgeObject()
+        elif currentObjectColor == ColorSensor.Color.NotFound:
+            self.start()
+        
+    def dodgeObject():
+        self.gear.backwards(10)
+        
 
     def hitObject(self):
         pass
     
     def run(self):
-        pass
+        self.start()
 
 
 
