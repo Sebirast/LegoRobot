@@ -11,31 +11,33 @@ import RobotContainer
 class Robot:
     def __init__(self):
         self.robotContainer = RobotContainer.RobotContainer()
-        robot = EV3Brick()
-        leftMotor = Motor(Port.A)
-        rightMotor = Motor(Port.B)
-        driveTrain = DriveBase(leftMotor, rightMotor, self.robotContainer.WHEEL_DIAMETER, self.robotContainer.AXEL_TRACK)
+        self.robot = EV3Brick()
+        self.leftMotor = Motor(Port.A)
+        self.rightMotor = Motor(Port.B)
+        self.driveTrain = DriveBase(self.leftMotor, self.rightMotor, self.robotContainer.WHEEL_DIAMETER, self.robotContainer.AXEL_TRACK)
 
-        colorSensor = ColorSensor(Port.S1)
-        touchSensor = TouchSensor(Port.S2)
-        ultrasonicSensor = UltrasonicSensor(Port.S3)
+        self.colorSensor = ColorSensor(Port.S1)
+        self.touchSensor = TouchSensor(Port.S2)
+        self.ultrasonicSensor = UltrasonicSensor(Port.S3)
 
         # variables
-        ulSensorRange = 800 #TODO
-        colorSensorRange = 100 #TODO
+        self.ulSensorRange = 800 #TODO
+        self.colorSensorRange = 100 #TODO
 
-        objectFound = False
+        self.objectFound = False
 
-        delay = 10
+        self.delay = 10
 
-        driveSpeed = 10 #TODO
-        turnRate = 10 #TODO
+        self.driveSpeed = 10 #TODO
+        self.turnRate = 10 #TODO
 
-        objectCounter = 0
+        self.objectCounter = 0
 
     def findObject(self):
-        self.checkObjectNumber()
+        self.ch()
         self.driveTrain.drive(0, self.turnRate)
+        distance = self.ultrasonicSensor.distance()
+
         while distance < self.ulSensorRange:
             currentTraveledAngle = self.driveTrain.angle()
             if currentTraveledAngle > 360:
@@ -68,20 +70,21 @@ class Robot:
     def getColor(self):
         color = self.colorSensor.color()
         if color == Color.BLUE or color == Color.BLACK or color == None:
-            self.dodgeObject()
+            self.goToNewPlace()
+
         elif color == Color.BLACK:
             self.hitObject()
 
     def hitObject(self):
         self.driveTrain.drive(self.driveSpeed, 0)
 
-        while self.touchSensor.pressed() == False:
+        while not self.touchSensor.pressed():
             wait(self.delay)
         
         self.driveTrain.stop()
         self.driveTrain.drive(self.driveSpeed, 0)
 
-        while self.pressed() == True:
+        while self.touchSensor.pressed():
             wait(self.delay)
         
         self.objectCounter += 1
@@ -96,9 +99,9 @@ class Robot:
     def run(self):
         self.findObject()
         
-    def exit(self):
+    def exitProgram(self):
         print(self.objectCounter)
-    
+
    def checkObjectNumber(self):
        if self.objectCounter > 5:
            self.exit()
