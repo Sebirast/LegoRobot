@@ -21,20 +21,20 @@ class Robot:
         self.ultrasonicSensor = UltrasonicSensor(Port.S3)
 
         # variables
-        self.ulSensorRange = 800 #TODO
-        self.colorSensorRange = 100 #TODO
+        self.ulSensorRange = 800  # TODO
+        self.colorSensorRange = 100  # TODO
 
         self.objectFound = False
 
         self.delay = 10
 
-        self.driveSpeed = 10 #TODO
-        self.turnRate = 10 #TODO
+        self.driveSpeed = 10  # TODO
+        self.turnRate = 10  # TODO
 
         self.objectCounter = 0
 
     def findObject(self):
-        self.ch()
+        self.checkObjectNumber()
         self.driveTrain.drive(0, self.turnRate)
         distance = self.ultrasonicSensor.distance()
 
@@ -98,19 +98,21 @@ class Robot:
     
     def run(self):
         self.findObject()
-        
+
     def exitProgram(self):
         print(self.objectCounter)
+        exit()
 
-   def checkObjectNumber(self):
+    def checkObjectNumber(self):
        if self.objectCounter > 5:
-           self.exit()
+           self.exitProgram()
        pass
 
 
 def main():
     r = Robot()
     r.run()
+
 
 if __name__ == "__main__":
     main()
