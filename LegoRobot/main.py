@@ -7,8 +7,8 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 # classes
-WHEEL_DIAMETER = 14
-AXEL_TRACK = 10
+WHEEL_DIAMETER = 55.4
+AXEL_TRACK = 104
     
 class LegoRobot:
     def __init__(self):
@@ -22,29 +22,30 @@ class LegoRobot:
         self.ultrasonicSensor = UltrasonicSensor(Port.S3)
 
         # variables
-        self.ulSensorRange = 300  # TODO
+        self.ulSensorRange = 20  # TODO
         self.colorSensorRange = 100  # TODO
 
         self.objectFound = False
 
         self.delay = 10
 
-        self.driveSpeed = 10  # TODO
-        self.turnRate = 30  # TODO
+        self.driveSpeed = 100  # TODO
+        self.turnRate = 5  # TODO
 
         self.objectCounter = 0
 
     def findObject(self):
         print("entered findObjet method")
         self.checkObjectNumber()
-        self.driveTrain.drive(0, self.turnRate)
+        self.driveTrain.drive(100, self.turnRate)
         distance = self.ultrasonicSensor.distance()
 
         self.driveTrain.reset()
 
         while distance < self.ulSensorRange:
             # currentTraveledAngle = self.driveTrain.angle()
-            distance = self.ultrasonicSensor.distance(True)
+            distance = self.ultrasonicSensor.distance()
+            print(distance)
 
             # if currentTraveledAngle > 360:
             #     self.driveTrain.reset()
@@ -53,37 +54,41 @@ class LegoRobot:
 
         self.goToObject()
 
+
     def goToObject(self):
         print("entered goToObject method")
         self.objectFound = True
 
-        self.driveTrain.drive(100, 0)
+        self.driveTrain.drive(self.driveSpeed, 0)
         distance = self.ultrasonicSensor.distance(True)
         oldDistance = distance
 
         while distance > self.colorSensorRange:
-            if oldDistance > distance:
-                self.driveTrain.stop()
-                self.findObject()
+            # if oldDistance > distance:
+            #     self.driveTrain.stop()
+            #     self.findObject()
 
             distance = self.ultrasonicSensor.distance(True)
-            wait(self.delay)
             oldDistance = distance
+            wait(self.delay)
         
         self.driveTrain.stop()
 
         self.getColor()
 
+
     def getColor(self):
         print("entered getColor method")
         color = self.colorSensor.color()
-        if color == Color.BLUE or color == Color.BLACK or color == None:
+        if color == Color.BLUE or color == Color.BLACK or color == None or color == Color.YELLOW:
             self.goToNewPlace()
 
         elif color == Color.BLACK:
             self.hitObject()
 
+
     def hitObject(self):
+        print("entered hitObjectMethdo")
         self.driveTrain.drive(self.driveSpeed, 0)
 
         while not self.touchSensor.pressed():
@@ -98,19 +103,23 @@ class LegoRobot:
         self.objectCounter += 1
         self.goToNewPlace()
 
+
     def goToNewPlace(self):
         print("entered goToNewPlace")
-        self.driveTrain.straight(-100)
+        self.driveTrain.straight(-20)
         self.driveTrain.turn(60)
-        self.driveTrain.straight(300)
+        self.driveTrain.straight(30)
         self.findObject()
     
+
     def run(self):
         self.findObject()
+
 
     def exitProgram(self):
         print(self.objectCounter)
         exit()
+
 
     def checkObjectNumber(self):
        if self.objectCounter > 5:
