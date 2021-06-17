@@ -5,23 +5,24 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
-import RobotContainer
 
 # classes
-class Robot:
+WHEEL_DIAMETER = 14
+AXEL_TRACK = 10
+    
+class LegoRobot:
     def __init__(self):
-        self.robotContainer = RobotContainer.RobotContainer()
         self.robot = EV3Brick()
         self.leftMotor = Motor(Port.A)
         self.rightMotor = Motor(Port.B)
-        self.driveTrain = DriveBase(self.leftMotor, self.rightMotor, self.robotContainer.WHEEL_DIAMETER, self.robotContainer.AXEL_TRACK)
+        self.driveTrain = DriveBase(self.leftMotor, self.rightMotor, wheel_diameter = WHEEL_DIAMETER,  axle_track = AXEL_TRACK)
 
         self.colorSensor = ColorSensor(Port.S1)
         self.touchSensor = TouchSensor(Port.S2)
         self.ultrasonicSensor = UltrasonicSensor(Port.S3)
 
         # variables
-        self.ulSensorRange = 800  # TODO
+        self.ulSensorRange = 300  # TODO
         self.colorSensorRange = 100  # TODO
 
         self.objectFound = False
@@ -29,25 +30,31 @@ class Robot:
         self.delay = 10
 
         self.driveSpeed = 10  # TODO
-        self.turnRate = 10  # TODO
+        self.turnRate = 30  # TODO
 
         self.objectCounter = 0
 
     def findObject(self):
+        print("entered findObjet method")
         self.checkObjectNumber()
         self.driveTrain.drive(0, self.turnRate)
         distance = self.ultrasonicSensor.distance()
 
+        self.driveTrain.reset()
+
         while distance < self.ulSensorRange:
-            currentTraveledAngle = self.driveTrain.angle()
-            if currentTraveledAngle > 360:
-                self.driveTrain.reset()
-                self.goToNewPlace()
+            # currentTraveledAngle = self.driveTrain.angle()
+            distance = self.ultrasonicSensor.distance(True)
+
+            # if currentTraveledAngle > 360:
+            #     self.driveTrain.reset()
+            #     self.goToNewPlace()
             wait(self.delay)
 
         self.goToObject()
 
     def goToObject(self):
+        print("entered goToObject method")
         self.objectFound = True
 
         self.driveTrain.drive(100, 0)
@@ -68,6 +75,7 @@ class Robot:
         self.getColor()
 
     def getColor(self):
+        print("entered getColor method")
         color = self.colorSensor.color()
         if color == Color.BLUE or color == Color.BLACK or color == None:
             self.goToNewPlace()
@@ -91,6 +99,7 @@ class Robot:
         self.goToNewPlace()
 
     def goToNewPlace(self):
+        print("entered goToNewPlace")
         self.driveTrain.straight(-100)
         self.driveTrain.turn(60)
         self.driveTrain.straight(300)
@@ -108,11 +117,5 @@ class Robot:
            self.exitProgram()
        pass
 
-
-def main():
-    r = Robot()
-    r.run()
-
-
-if __name__ == "__main__":
-    main()
+r = LegoRobot()
+r.run()
