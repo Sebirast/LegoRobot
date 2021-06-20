@@ -19,59 +19,64 @@ class LegoRobot:
 
         self.colorSensor = ColorSensor(Port.S1)
         self.touchSensor = TouchSensor(Port.S2)
-        self.ultrasonicSensor = UltrasonicSensor(Port.S3)
+        self.ultraSonicSensor = UltrasonicSensor(Port.S3)
 
         # variables
-        self.ulSensorRange = 20  # TODO
-        self.colorSensorRange = 100  # TODO
+        self.range = 500  
+        self.colorSensorRange = 40  # TODO
 
         self.objectFound = False
 
         self.delay = 10
 
         self.driveSpeed = 100  # TODO
-        self.turnRate = 5  # TODO
+        self.turnRate = 50  # TODO
 
         self.objectCounter = 0
+        
+        self.deadZone = 10
 
     def findObject(self):
-        print("entered findObjet method")
+        print("entered findObject")
         self.checkObjectNumber()
-        self.driveTrain.drive(100, self.turnRate)
-        distance = self.ultrasonicSensor.distance()
+        self.driveTrain.drive(0, 40)
 
-        self.driveTrain.reset()
+        distance = self.ultraSonicSensor.distance()
 
-        while distance < self.ulSensorRange:
-            # currentTraveledAngle = self.driveTrain.angle()
-            distance = self.ultrasonicSensor.distance()
-            print(distance)
-
-            # if currentTraveledAngle > 360:
-            #     self.driveTrain.reset()
-            #     self.goToNewPlace()
+        while distance > self.range:
+            distance = self.ultraSonicSensor.distance()
             wait(self.delay)
+        
+        self.robot.speaker.beep()
+
+        if distance > 1000:
+            self.findObject()
 
         self.goToObject()
 
 
     def goToObject(self):
-        print("entered goToObject method")
-        self.objectFound = True
-
-        self.driveTrain.drive(self.driveSpeed, 0)
-        distance = self.ultrasonicSensor.distance(True)
+        print("entered goToObject")
+        distance = self.ultraSonicSensor.distance()
         oldDistance = distance
+        self.driveTrain.drive(self.driveSpeed, 0)
 
         while distance > self.colorSensorRange:
-            # if oldDistance > distance:
-            #     self.driveTrain.stop()
-            #     self.findObject()
 
-            distance = self.ultrasonicSensor.distance(True)
+            # check if robot is moving exactly towards an object:
+            if distance > 70:
+                if distance > oldDistance + self.deadZone:
+                    print("hello")
+                    self.driveTrain.stop()
+                    self.findObject()
+
             oldDistance = distance
+
+            distance = self.ultraSonicSensor.distance()
+
+            print(oldDistance, distance)        
             wait(self.delay)
-        
+
         self.driveTrain.stop()
 
         self.getColor()
@@ -106,9 +111,9 @@ class LegoRobot:
 
     def goToNewPlace(self):
         print("entered goToNewPlace")
-        self.driveTrain.straight(-20)
-        self.driveTrain.turn(60)
-        self.driveTrain.straight(30)
+        self.driveTrain.straight(-100)
+        self.driveTrain.turn(90)
+        self.driveTrain.straight(200)
         self.findObject()
     
 
