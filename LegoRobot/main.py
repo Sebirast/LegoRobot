@@ -6,17 +6,14 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
-import enum
 
 # classes
-
-
 class ColorCalculator:
-
     def __init__(self, sensorPort):
         self.cs = ColorSensor(sensorPort)
 
-    def calculateColor(rgb):
+    def calculateColor():
+        rgb = cs.rgb()
         color = None
 
         if rgb[0] != 0:
@@ -38,9 +35,9 @@ class LegoRobot:
         self.leftMotor = Motor(Port.A)
         self.rightMotor = Motor(Port.B)
         self.driveTrain = DriveBase(
-            self.leftMotor, self.rightMotor, wheel_diameter=WHEEL_DIAMETER,  axle_track=AXEL_TRACK)
+        self.leftMotor, self.rightMotor, wheel_diameter=WHEEL_DIAMETER,  axle_track=AXEL_TRACK)
 
-        self.colorSensor = ColorSensor(Port.S1)
+        self.colorCalclulator = ColorCalculator(Port.S1)
         self.touchSensor = TouchSensor(Port.S2)
         self.ultraSonicSensor = UltrasonicSensor(Port.S3)
 
@@ -105,12 +102,20 @@ class LegoRobot:
 
     def getColor(self):
         print("entered getColor method")
-        color = self.colorSensor.color()
-        if color == Color.BLUE or color == Color.BLACK or color == None or color == Color.YELLOW:
-            self.goToNewPlace()
+        color = None
 
-        elif color == Color.BLACK:
+        # I use this loop to avoid faults in the colorDetection
+        # When I testet the program, the color wasnt right at the beginning of the measuringsection
+        # so I use not the very first measured color
+
+        for i in range(10):
+            color = colorCaluclator.calculateColor()
+        
+        if color == "BLACK":
+            robot.speaker.beep()
             self.hitObject()
+
+        self.goToNewPlace()
 
     def hitObject(self):
         print("entered hitObjectMethdo")
