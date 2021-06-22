@@ -8,28 +8,29 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 # classes
-class ColorCalculator:
-    def __init__(self, sensorPort):
-        self.cs = ColorSensor(sensorPort)
-
-    def calculateColor():
-        rgb = cs.rgb()
-        color = None
-
-        if rgb[0] != 0:
-            return "WHITE"
-        else:
-            brightness = rgb[0] + rgb[1] + rgb[2]
-
-            if brightness == 0:
-                return "BLACK"
-            else:
-                return "BLUE"
 
 WHEEL_DIAMETER = 55.4
 AXEL_TRACK = 104
 
 class LegoRobot:
+    class ColorCalculator:
+        def __init__(self, sensorPort):
+            self.cs = ColorSensor(sensorPort)
+
+        def calculateColor(self):
+            rgb = self.cs.rgb()
+            color = None
+
+            if rgb[0] != 0:
+                return "WHITE"
+            else:
+                brightness = rgb[0] + rgb[1] + rgb[2]
+
+                if brightness == 0:
+                    return "BLACK"
+                else:
+                    return "BLUE"
+
     def __init__(self):
         self.robot = EV3Brick()
         self.leftMotor = Motor(Port.A)
@@ -37,7 +38,7 @@ class LegoRobot:
         self.driveTrain = DriveBase(
         self.leftMotor, self.rightMotor, wheel_diameter=WHEEL_DIAMETER,  axle_track=AXEL_TRACK)
 
-        self.colorCalclulator = ColorCalculator(Port.S1)
+        self.cc = LegoRobot.ColorCalculator(Port.S1)
         self.touchSensor = TouchSensor(Port.S2)
         self.ultraSonicSensor = UltrasonicSensor(Port.S3)
 
@@ -49,12 +50,12 @@ class LegoRobot:
 
         self.delay = 10
 
-        self.driveSpeed = 100  # TODO
+        self.driveSpeed = 90  # TODO
         self.turnRate = 50  # TODO
 
         self.objectCounter = 0
 
-        self.deadZone = 10
+        self.deadZone = 12
 
     def findObject(self):
         print("entered findObject")
@@ -83,7 +84,7 @@ class LegoRobot:
         while distance > self.colorSensorRange:
 
             # check if robot is moving exactly towards an object:
-            if distance > 70:
+            if distance > 100:
                 if distance > oldDistance + self.deadZone:
                     print("hello")
                     self.driveTrain.stop()
@@ -109,10 +110,12 @@ class LegoRobot:
         # so I use not the very first measured color
 
         for i in range(10):
-            color = colorCaluclator.calculateColor()
+            color = self.cc.calculateColor()
         
+        print(color)
+
         if color == "BLACK":
-            robot.speaker.beep()
+            self.robot.speaker.beep()
             self.hitObject()
 
         self.goToNewPlace()
@@ -154,4 +157,4 @@ class LegoRobot:
 
 
 r = LegoRobot()
-r.run()
+r.getColor()
