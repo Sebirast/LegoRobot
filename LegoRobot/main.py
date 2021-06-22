@@ -5,7 +5,7 @@ from pybricks.ev3devices import (
 from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
-from pybricks.media.ev3dev import SoundFile, ImageFile
+import random
 
 # classes
 
@@ -13,6 +13,9 @@ WHEEL_DIAMETER = 55.4
 AXEL_TRACK = 104
 
 class LegoRobot:
+
+    # we use this class to convert the rgbvalues to a string which represents the color
+    # this class has to be in the legorobot-class because otherwhise the compiler couldnt find this class (i dont really know why)
     class ColorCalculator:
         def __init__(self, sensorPort):
             self.cs = ColorSensor(sensorPort)
@@ -21,9 +24,14 @@ class LegoRobot:
             rgb = self.cs.rgb()
             color = None
 
+            # we meassured that white has values in all rgb values (also in the red value)
+            # blue and black dont have any red in it
             if rgb[0] != 0:
                 return "WHITE"
             else:
+                # black = (0, 0, 0) => brightness = 0
+                # blue = (0, g > 0, b > 0) => brightness > 0
+
                 brightness = rgb[0] + rgb[1] + rgb[2]
 
                 if brightness == 0:
@@ -51,16 +59,22 @@ class LegoRobot:
         self.delay = 10
 
         self.driveSpeed = 90  # TODO
-        self.turnRate = 50  # TODO
+        self.turnRate = 40  # TODO
 
         self.objectCounter = 0
 
-        self.deadZone = 12
+        self.deadZone = 20
 
-    def findObject(self):
+        self.direction = "r"
+
+    def findObject(self, direction):
         print("entered findObject")
         self.checkObjectNumber()
-        self.driveTrain.drive(0, 40)
+
+        if direction == "r":
+            self.driveTrain.drive(0, 40)
+        elif direction == "l":
+            self.driveTrain.drive(0, -40)
 
         distance = self.ultraSonicSensor.distance()
 
@@ -71,7 +85,7 @@ class LegoRobot:
         self.robot.speaker.beep()
 
         if distance > 1000:
-            self.findObject()
+            self.findObject(self.direction)
 
         self.goToObject()
 
@@ -82,13 +96,15 @@ class LegoRobot:
         self.driveTrain.drive(self.driveSpeed, 0)
 
         while distance > self.colorSensorRange:
-
             # check if robot is moving exactly towards an object:
             if distance > 100:
                 if distance > oldDistance + self.deadZone:
-                    print("hello")
                     self.driveTrain.stop()
-                    self.findObject()
+                    self.findObject(self.direction)
+            
+            # check if robot is not driving into something
+            if self.touchSensor.pressed():
+                self.goToNewPlace()
 
             oldDistance = distance
 
@@ -137,14 +153,29 @@ class LegoRobot:
         self.goToNewPlace()
 
     def goToNewPlace(self):
-        print("entered goToNewPlace")
-        self.driveTrain.straight(-100)
-        self.driveTrain.turn(90)
-        self.driveTrain.straight(200)
-        self.findObject()
+        randomNumber = random.randint(1, 3)
+        if randomNumber == 1:
+            self.driveTrain.straight(-100)
+            self.driveTrain.turn(90)
+            self.driveTrain.straight(200)
+            self.direction = "r"
+
+        elif randomNumber == 2:
+            self.driveTrain.straight(-100)
+            self.driveTrain.turn(-90)
+            self.driveTrain.straight(200)
+            self.direction = "l"
+
+        elif randomNumber == 3:
+            self.driveTrain.straight(-100)
+            self.driveTrain.turn(180)
+            self.driveTrain.straight(100)
+        
+        self.findObject(self.direction)
+
 
     def run(self):
-        self.findObject()
+        self.findObject(self.direction)
 
     def exitProgram(self):
         print(self.objectCounter)
@@ -157,4 +188,4 @@ class LegoRobot:
 
 
 r = LegoRobot()
-r.getColor()
+r.run()
