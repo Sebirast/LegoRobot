@@ -40,6 +40,8 @@ class LegoRobot:
                     return "BLUE"
 
     def __init__(self):
+        # in the constructor we initiate all the motors, sensors..
+        # and of course one robotobject (ev3Brick) and a gear (driveBase)
         self.robot = EV3Brick()
         self.leftMotor = Motor(Port.A)
         self.rightMotor = Motor(Port.B)
@@ -54,11 +56,12 @@ class LegoRobot:
         self.range = 500
         self.colorSensorRange = 40  # TODO
 
-        self.objectFound = False
-
+        # this delay is called every loop
         self.delay = 10
 
+        # this speeds are used in the driveTrain.drive() mehtods
         self.driveSpeed = 90  # TODO
+        self.hitSpeed = 200
         self.turnRate = 40  # TODO
 
         self.objectCounter = 0
@@ -71,6 +74,7 @@ class LegoRobot:
         print("entered findObject")
         self.checkObjectNumber()
 
+        # decide in which direction the robot will search 
         if direction == "r":
             self.driveTrain.drive(0, 40)
         elif direction == "l":
@@ -78,6 +82,7 @@ class LegoRobot:
 
         distance = self.ultraSonicSensor.distance()
 
+        # turn as long the distance is greater than the range of the robot
         while distance > self.range:
             distance = self.ultraSonicSensor.distance()
             wait(self.delay)
@@ -90,11 +95,11 @@ class LegoRobot:
         self.goToObject()
 
     def goToObject(self):
-        print("entered goToObject")
         distance = self.ultraSonicSensor.distance()
         oldDistance = distance
         self.driveTrain.drive(self.driveSpeed, 0)
 
+        # drive to the object:
         while distance > self.colorSensorRange:
             # check if robot is moving exactly towards an object:
             if distance > 100:
@@ -110,7 +115,6 @@ class LegoRobot:
 
             distance = self.ultraSonicSensor.distance()
 
-            print(oldDistance, distance)
             wait(self.delay)
 
         self.driveTrain.stop()
@@ -118,7 +122,6 @@ class LegoRobot:
         self.getColor()
 
     def getColor(self):
-        print("entered getColor method")
         color = None
 
         # I use this loop to avoid faults in the colorDetection
@@ -138,35 +141,41 @@ class LegoRobot:
 
     def hitObject(self):
         print("entered hitObjectMethdo")
-        self.driveTrain.drive(self.driveSpeed, 0)
+        self.driveTrain.drive(self.hitSpeed, 0)
+        pressed = False
 
-        while not self.touchSensor.pressed():
-            wait(self.delay)
+        # the variable pressed is changed in the first if statement
+        # the program will only enter this statement when the roboter has driven into the objet but didn't hit it
+        # after that pressed is true
+        # the robot will continue driving into the object until the sensor isn't pressed anymore
+        while True:
+            if self.touchSensor.pressed() and pressed == False:
+                pressed = True
+            if self.touchSensor.pressed() == False and pressed == True:
+                break
 
         self.driveTrain.stop()
-        self.driveTrain.drive(self.driveSpeed, 0)
-
-        while self.touchSensor.pressed():
-            wait(self.delay)
 
         self.objectCounter += 1
         self.goToNewPlace()
 
     def goToNewPlace(self):
+        # when I tested the program i had problems that the robot is stuck in a loop => the robot went allways to the same objects
+        # so I tried to create a random number which then says which action should be executed
         randomNumber = random.randint(1, 3)
-        if randomNumber == 1:
+        if randomNumber == 1:   # the robot drives backwards, turn 90d right and drives straight forward
             self.driveTrain.straight(-100)
             self.driveTrain.turn(90)
             self.driveTrain.straight(200)
             self.direction = "r"
 
-        elif randomNumber == 2:
+        elif randomNumber == 2: # the robot drives backwards, turns around and drives straight forward
             self.driveTrain.straight(-100)
             self.driveTrain.turn(-90)
             self.driveTrain.straight(200)
             self.direction = "l"
 
-        elif randomNumber == 3:
+        elif randomNumber == 3: # the robot drives backwards, turns 90d left and drives straight forward
             self.driveTrain.straight(-100)
             self.driveTrain.turn(180)
             self.driveTrain.straight(100)
@@ -181,6 +190,7 @@ class LegoRobot:
         print(self.objectCounter)
         exit()
 
+    # this function is used to check if the robot has already knocked 5 objects over
     def checkObjectNumber(self):
         if self.objectCounter > 5:
             self.exitProgram()
