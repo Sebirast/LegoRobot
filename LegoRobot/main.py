@@ -49,12 +49,11 @@ class LegoRobot:
         self.leftMotor, self.rightMotor, wheel_diameter=WHEEL_DIAMETER,  axle_track=AXEL_TRACK)
 
         self.cc = LegoRobot.ColorCalculator(Port.S1)
-        self.touchSensor = TouchSensor(Port.S2)
         self.ultraSonicSensor = UltrasonicSensor(Port.S3)
 
         # variables
-        self.range = 500
-        self.colorSensorRange = 40  # TODO
+        self.range = 600
+        self.colorSensorRange = 50 # TODO
 
         # this delay is called every loop
         self.delay = 10
@@ -62,35 +61,35 @@ class LegoRobot:
         # this speeds are used in the driveTrain.drive() mehtods
         self.driveSpeed = 90  # TODO
         self.hitSpeed = 200
-        self.turnRate = 40  # TODO
+        self.turnRate = 30  # TODO
 
         self.objectCounter = 0
 
         self.deadZone = 20
 
-        self.direction = "r"
-
-    def findObject(self, direction):
+    def findObject(self):
         print("entered findObject")
         self.checkObjectNumber()
 
-        # decide in which direction the robot will search 
-        if direction == "r":
-            self.driveTrain.drive(0, 40)
-        elif direction == "l":
-            self.driveTrain.drive(0, -40)
-
         distance = self.ultraSonicSensor.distance()
+        self.driveTrain.reset()
+        currentTraveldAngle = self.driveTrain.angle()
+
+        self.driveTrain.drive(0, self.turnRate)
 
         # turn as long the distance is greater than the range of the robot
         while distance > self.range:
+            if currentTraveldAngle > 360:
+                self.goToOtherPlace()
+
             distance = self.ultraSonicSensor.distance()
+            currenTraveldAngle = self.driveTrain.angle()
             wait(self.delay)
 
         self.robot.speaker.beep()
 
         if distance > 1000:
-            self.findObject(self.direction)
+            self.findObject()
 
         self.goToObject()
 
@@ -101,16 +100,13 @@ class LegoRobot:
 
         # drive to the object:
         while distance > self.colorSensorRange:
+
             # check if robot is moving exactly towards an object:
-            if distance > 100:
-                if distance > oldDistance + self.deadZone:
-                    self.driveTrain.stop()
-                    self.findObject(self.direction)
+            if distance > oldDistance + 50:
+                self.driveTrain.stop()
+                self.findObject()
             
             # check if robot is not driving into something
-            if self.touchSensor.pressed():
-                self.goToNewPlace()
-
             oldDistance = distance
 
             distance = self.ultraSonicSensor.distance()
@@ -141,21 +137,10 @@ class LegoRobot:
 
     def hitObject(self):
         print("entered hitObjectMethdo")
-        self.driveTrain.drive(self.hitSpeed, 0)
-        pressed = False
-
-        # the variable pressed is changed in the first if statement
-        # the program will only enter this statement when the roboter has driven into the objet but didn't hit it
-        # after that pressed is true
-        # the robot will continue driving into the object until the sensor isn't pressed anymore
-        while True:
-            if self.touchSensor.pressed() and pressed == False:
-                pressed = True
-            if self.touchSensor.pressed() == False and pressed == True:
-                break
-
-        self.driveTrain.stop()
-
+        self.driveTrain.straight(100)
+        self.driveTrain.straight(-100)
+        self.driveTrain.turn(180)
+        
         self.objectCounter += 1
         self.goToNewPlace()
 
@@ -167,24 +152,22 @@ class LegoRobot:
             self.driveTrain.straight(-100)
             self.driveTrain.turn(90)
             self.driveTrain.straight(200)
-            self.direction = "r"
 
         elif randomNumber == 2: # the robot drives backwards, turns around and drives straight forward
             self.driveTrain.straight(-100)
             self.driveTrain.turn(-90)
             self.driveTrain.straight(200)
-            self.direction = "l"
 
         elif randomNumber == 3: # the robot drives backwards, turns 90d left and drives straight forward
             self.driveTrain.straight(-100)
             self.driveTrain.turn(180)
             self.driveTrain.straight(100)
         
-        self.findObject(self.direction)
+        self.findObject()
 
 
     def run(self):
-        self.findObject(self.direction)
+        self.findObject()
 
     def exitProgram(self):
         print(self.objectCounter)
